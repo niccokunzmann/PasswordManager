@@ -54,8 +54,8 @@ class MasterPassword(object):
     def password(self, password):
         # do not use the original password but the hash instead
         password_bytes = password.encode('UTF-8')
-        self.hash = hash_hex(password_bytes)
         self.bytes = hash_binary(password_bytes)
+        self.hash = hash_hex(self.bytes)
 
     @property
     def bytes(self):
@@ -70,6 +70,9 @@ class MasterPassword(object):
         self.refresh_timer()
         self._bytes = bytes
 
+    def has_bytes(self):
+        return self._bytes is not None
+
     def refresh_timer(self):
         if self._deletion_timer is not None:
             self._deletion_timer.cancel()
@@ -81,6 +84,8 @@ class MasterPassword(object):
     def hash(self):
         if self._hash is None:
             self.ask()
+        if self.has_bytes(): # negligible race condition
+            assert self._hash == hash_hex(self.bytes)
         return self._hash
 
     @hash.setter
