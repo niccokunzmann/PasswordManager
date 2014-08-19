@@ -73,4 +73,19 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
                                     password_entry.get(),
                                     textbox.get('0.0', tk.END))
 
-__all__ = ['ask_password', 'ask_add_password']
+
+def notify(text, duraction_seconds):
+    root = tk.Toplevel()
+    label = tk.Label(master = root, text = text)
+    label.pack()
+    _cancel = root.after(int(duraction_seconds * 1000), root.destroy)
+    def cancel():
+        root.destroy()
+        root.after_cancel(_cancel)
+    button = tk.Button(master = root, text = '   X   ', command = cancel)
+    button.pack(side = tk.LEFT)
+
+def notify_about_copy():
+    notify("The password was copied.", 1)
+    
+__all__ = ['ask_password', 'ask_add_password', 'notify_about_copy', 'notify']

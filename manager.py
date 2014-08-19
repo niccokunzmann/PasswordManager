@@ -12,6 +12,7 @@ except ImportError:
 import ScrolledList
 
 from database import Database
+from dialog import notify_about_copy
     
 class MainWindow(tk.Tk, object):
 
@@ -108,7 +109,9 @@ class MainWindow(tk.Tk, object):
     def copy_password_to_clipboard(self, event = None):
         password = self.current_entry.password
         self.clipboard_clear()
+        print(repr(password))
         self.clipboard_append(password)
+        notify_about_copy()
         # TODO: notify about copy
 
     def show_deleted_passwords(self, event = None):
