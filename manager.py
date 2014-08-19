@@ -148,9 +148,11 @@ class MainWindow(tk.Tk, object):
     def menu_posted(self, menu):
         self.password_list.menu = None
         if self.current_entry:
+            deletion_text = "delete"
             if self.current_entry.deleted:
-                menu.add_command(label = "delete for ever", underline = 0, 
-                                 command = self.delete_password)
+                deletion_text += " for ever"
+            menu.add_command(label = deletion_text, underline = 0, 
+                             command = self.delete_password)
             menu.add_separator()
             if self.current_entry.deleted:
                 menu.add_command(label = "undo deletion", underline = 0, 
