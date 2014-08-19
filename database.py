@@ -203,7 +203,7 @@ class Database(object):
         for password in passwords:
             with self:
                 try:
-                    with self.database:
+                    with self:
                         entry = self.add_new_password_from_export(password)
                         successes.append(entry.name)
                 except:
@@ -233,9 +233,10 @@ class PasswordEntry(object):
         self.text = text
         self.deleted = False
         self.database.add_password_entry(self)
+        return self
 
     def fill_from_export(self, export):
-        self.fill_from_data(export['name'], export['password'], export['text'])
+        return self.fill_from_data(export['name'], export['password'], export['text'])
 
     def __init__(self, database, dictionairy, master_password):
         self.database = database
