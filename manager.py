@@ -141,14 +141,16 @@ class MainWindow(tk.Tk, object):
         import_config(file_name)
 
     def fill_menu(self):
+        # after current_entry is updated
         self.after(1, self.menu_posted, self.password_list.menu)
         
 
     def menu_posted(self, menu):
         self.password_list.menu = None
         if self.current_entry:
-            menu.add_command(label = "delete", underline = 0, 
-                             command = self.delete_password)
+            if self.current_entry.deleted:
+                menu.add_command(label = "delete for ever", underline = 0, 
+                                 command = self.delete_password)
             menu.add_separator()
             if self.current_entry.deleted:
                 menu.add_command(label = "undo deletion", underline = 0, 

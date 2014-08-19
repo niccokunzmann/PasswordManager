@@ -47,7 +47,18 @@ def decrypt_password(encrypted_password, salt, master_password):
 def new_salt():
     return hash_hex(os.urandom(20))
 
-new_random_password = new_salt
+# "".join(map(chr, range(32, 127)))
+PASSWORD_CHARACTERS =  '''!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'''
+
+def new_random_password(length = 25, characters = PASSWORD_CHARACTERS):
+    s = ""
+    assert len(characters) <= 256
+    while len(s) < length:
+        index = ord(os.urandom(1))
+        if index >= len(characters):
+            continue
+        s += characters[index]
+    return s
 
 
 __all__ = ['hash_hex', 'encrypt_password', 'decrypt_password', 'new_salt',
