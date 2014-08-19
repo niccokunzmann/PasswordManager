@@ -7,6 +7,7 @@ from encryption import new_salt, new_random_password
 import base64
 import threading
 import os
+import traceback
 
 MASTER_PASSWORD_IN_MEMORY_SECONDS = 10
 
@@ -188,6 +189,35 @@ class Database(object):
     def add_new_password_from_user(self):
         return self.new_password_entry().fill_from_user()
 
+    def add_new_password_from_export(self, export):
+        return self.new_password_entry().fill_from_export(export)
+
+    def export_all(self):
+        return [entry.export() for entry in self.passwords]
+
+    def export_all_json(self, file):
+        return json.dump(self.export_all(), file, sort_keys=True, indent=4)
+
+    def import_all(self, passwords, log_file):
+        successes = []
+        for password in passwords:
+            with self:
+                try:
+                    with self.database:
+                        entry = self.add_new_password_from_export(password)
+                        successes.append(entry.name)
+                except:
+                    traceback.print_exc(file = log_file)
+                    print("Failed: ", password, file = log_file)
+        for success in successes:
+            print("Success:", success, file = log_file)
+
+    def import_all_json(self, file, log_file):
+        try:
+            passwords = json.load(file)
+            self.import_all(passwords, log_file)
+        except:
+            traceback.print_exc(file = log_file)
 
 class PasswordEntry(object):
 
@@ -203,6 +233,9 @@ class PasswordEntry(object):
         self.text = text
         self.deleted = False
         self.database.add_password_entry(self)
+
+    def fill_from_export(self, export):
+        self.fill_from_data(export['name'], export['password'], export['text'])
 
     def __init__(self, database, dictionairy, master_password):
         self.database = database
@@ -254,5 +287,8 @@ class PasswordEntry(object):
 
     def remove(self):
         self.database.remove_password_entry(self)
+
+    def export(self):
+        return dict(name = self.name, password = self.password, text = self.text)
 
    

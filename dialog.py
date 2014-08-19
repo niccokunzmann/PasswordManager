@@ -74,18 +74,28 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
                                     textbox.get('0.0', tk.END))
 
 
-def notify(text, duraction_seconds):
+def notify(text, duration_seconds):
     root = tk.Toplevel()
-    label = tk.Label(master = root, text = text)
-    label.pack()
-    _cancel = root.after(int(duraction_seconds * 1000), root.destroy)
+    textbox = tk.Text(master = root, width = 40, height = 2)
+    textbox.insert(tk.END, text)
+    textbox.pack(fill = tk.BOTH, expand = True)
+    if duration_seconds:
+        _cancel = root.after(int(duration_seconds * 1000), root.destroy)
     def cancel():
         root.destroy()
-        root.after_cancel(_cancel)
+        if duration_seconds:
+            root.after_cancel(_cancel)
     button = tk.Button(master = root, text = '   X   ', command = cancel)
     button.pack(side = tk.LEFT)
 
 def notify_about_copy():
     notify("The password was copied.", 1)
     
-__all__ = ['ask_password', 'ask_add_password', 'notify_about_copy', 'notify']
+def notify_file(file):
+    try:
+        file.seek(0)
+    except:
+        pass
+    notify(file.read(), None)
+
+__all__ = ['ask_password', 'ask_add_password', 'notify_about_copy', 'notify', 'notify_file']

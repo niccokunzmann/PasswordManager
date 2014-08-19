@@ -1,5 +1,8 @@
 import json
 import os
+import sys
+import io
+import traceback
 
 try:
     import Tkinter as tk
@@ -12,7 +15,7 @@ except ImportError:
 import ScrolledList
 
 from database import Database
-from dialog import notify_about_copy
+from dialog import notify_about_copy, notify_file
     
 class MainWindow(tk.Tk, object):
 
@@ -109,7 +112,6 @@ class MainWindow(tk.Tk, object):
     def copy_password_to_clipboard(self, event = None):
         password = self.current_entry.password
         self.clipboard_clear()
-        print(repr(password))
         self.clipboard_append(password)
         notify_about_copy()
         # TODO: notify about copy
@@ -141,12 +143,27 @@ class MainWindow(tk.Tk, object):
 
     def import_passwords(self, event = None):
         file_name = filedialog.askopenfilename(filetypes = [("all files", "*")])
-        import_config(file_name)
+        log_file = io.StringIO()
+        try:
+            with open(file_name) as file:
+                self.database.import_all_json(file, log_file)
+        except:
+            traceback.print_exc(file = log_file)
+        finally:
+            log_file.seek(0)
+            notify_file(log_file)
+        
 
     def fill_menu(self):
         # after current_entry is updated
         self.after(1, self.menu_posted, self.password_list.menu)
-        
+
+    def export_passwords(self):
+        file_name = filedialog.asksaveasfilename(filetypes = [("all files", "*")])
+        if not file_name:
+            return 
+        with open(file_name, 'w') as file:
+            self.database.export_all_json(file)
 
     def menu_posted(self, menu):
         self.password_list.menu = None
@@ -173,6 +190,8 @@ class MainWindow(tk.Tk, object):
                              command = self.update_list)
         menu.add_command(label = "import", underline = 0, 
                          command = self.import_passwords)
+        menu.add_command(label = "export all", underline = 0, 
+                         command = self.export_passwords)
 
     def on_select(self, index):
         if self.current_entry:

@@ -47,8 +47,8 @@ def decrypt_password(encrypted_password, salt, master_password):
 def new_salt():
     return hash_hex(os.urandom(20))
 
-# "".join(map(chr, range(32, 127)))
-PASSWORD_CHARACTERS =  '''!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'''
+# "".join(map(chr, range(33, 127))) without "
+PASSWORD_CHARACTERS =  '''!#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'''
 
 def new_random_password(length = 25, characters = PASSWORD_CHARACTERS):
     s = ""
