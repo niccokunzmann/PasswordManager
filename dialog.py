@@ -65,6 +65,10 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
     textbox = tk.Text(master = entry_frame, height = 3, width = 20)
     textbox.grid(column = 1, row = 2, sticky = tk.W + tk.E + tk.S + tk.N)
     textbox.insert(tk.END, text)
+    def return_press(event):
+        textbox.insert(tk.INSERT, '\n')
+        return "break"
+    textbox.bind("<KeyPress-Return>", return_press)
     def enter(event = None):
         password_entry.selection_range(0, tk.END)
     password_entry.bind('<FocusIn>', enter)
