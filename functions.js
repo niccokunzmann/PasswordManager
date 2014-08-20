@@ -20,7 +20,7 @@ function parse_passwords() {
   password_database = JSON.parse(password_json);
   if (password_database.passwords === undefined) {
     if (password_database[0] === undefined) {
-      alert("Could not parse passwords");
+      alert("Could not find passwords.");
       return;
     }
     passwords = password_database;
@@ -144,7 +144,24 @@ function show_password(index) {
     password = passwords[index];
     decrypted_password = decrypt(password);
     plain_password_container.textContent = decrypted_password;
+    selectElementContents(plain_password_container);
   } else {
     plain_password_container.textContent = "";
   }
+}
+
+// select password
+// http://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript#4183448
+function selectElementContents(el) {
+    if (window.getSelection && document.createRange) {
+        var sel = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } else if (document.selection && document.body.createTextRange) {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(el);
+        textRange.select();
+    }
 }
