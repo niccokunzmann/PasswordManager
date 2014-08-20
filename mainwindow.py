@@ -59,13 +59,16 @@ class MainWindow(tk.Tk, object):
         self.show_deleted_entries.set(False)
 
         self.bind('<Control-n>', self.new_password)
-        self.bind('<KeyPress-Escape>', self.close)
+        self.bind('<KeyPress-Escape>', self.minimize)
 
         self.update_list()
 
     def close(self, event = None):
         self.quit()
         self.destroy()
+
+    def minimize(self, event = None):
+        self.iconify()
 
     def new_password(self, event = None):
         with self.database:
