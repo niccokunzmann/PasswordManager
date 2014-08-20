@@ -28,6 +28,12 @@ Encrypted passwords are stored in the passwords.json file along with all the oth
 
 Random passwords are generated. They include characters which can be typed in with an English keyboard layout.
 
+Web Version
+-----------
+
+The web version can be found in the [manager.html](http://rawgit.com/niccokunzmann/PasswordManager/master/manager.html). You, not the file, will need read access to the passwords.json file. You can open it with any text editor and copy the content into the website.  
+After you typed in the correct master password you can decrypt the passwords.
+
 License
 -------
 
