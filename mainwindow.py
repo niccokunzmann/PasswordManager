@@ -69,6 +69,7 @@ class MainWindow(tk.Tk, object):
 
         self.update_list()
         self.hide_password()
+        self.update_info_frame(self.current_entry)
 
     def close(self, event = None):
         self.quit()
