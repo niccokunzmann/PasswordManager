@@ -17,13 +17,13 @@ I recommend to [download the manager](https://github.com/niccokunzmann/PasswordM
 Make backups by copying the whole folder with the password manager to somewhere.
 Future versions may be be incompatible with the format of the passwords.json file. So, do not update the manager directly but download a new version, export and, import the passwords. Do not forget to delete the export file.
 
-You may not always have Python 3 with you. In this case you can use the html/javascript version to view your passwords. You can reach it [here](http://rawgit.com/niccokunzmann/PasswordManager/master/manager.html) but, I would not count on that. You can store the password file somewhere in the web where other people do not have access - Dropbox, ownCloud, e-mails.
+You may not always have Python 3 with you. In this case you can use the html/javascript version to view your passwords. You can reach it [here](http://rawgit.com/niccokunzmann/PasswordManager/master/manager.html). It would be good to make your own web version accessible from somewhere.  You can store the password file somewhere in the web where other people do not have access - Dropbox, ownCloud, e-mails - to read it out and copy it to the password manager.
 
 Password Protection
 -------------------
 
 The passwords and only the passwords are encrypted using the master password. The master password is hashed twice and that hash is stored in the database to give feedback whether the master password is correctly typed in.  
-The description and the name is not encrypted.  
+The descriptions and the names are not encrypted.  
 Encrypted passwords are stored in the passwords.json file along with all the other information. 
 
 Random passwords are generated. They include characters which can be typed in with an English keyboard layout.
