@@ -51,7 +51,8 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
     name_label = tk.Label(master = entry_frame, text = 'name')
     name_label.grid(column = 0, row = 0)
     name_entry = tk.Entry(master = entry_frame)
-    name_entry.grid(column = 1, row = 0, sticky = tk.W + tk.E)
+    name_entry.grid(column = 1, row = 0, sticky = tk.W + tk.E,
+                    columnspan = 2)
     name_entry.insert(0, name)
     
     password_label = tk.Label(master = entry_frame, text = 'password')
@@ -59,11 +60,19 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
     password_entry = tk.Entry(master = entry_frame, show = PASSWORD_CHARACTER)
     password_entry.grid(column = 1, row = 1, sticky = tk.W + tk.E)
     password_entry.insert(0, password)
+    def copy_password():
+        entry_frame.clipboard_clear()
+        entry_frame.clipboard_append(password_entry.get())
+        notify_about_copy()
+    copy_password_button = tk.Button(master = entry_frame, text = "copy",
+                                     command = copy_password)
+    copy_password_button.grid(column = 2, row = 1)
     
     text_label = tk.Label(master = entry_frame, text = 'info')
     text_label.grid(column = 0, row = 2, sticky = tk.E + tk.S + tk.N)
     textbox = tk.Text(master = entry_frame, height = 3, width = 20)
-    textbox.grid(column = 1, row = 2, sticky = tk.W + tk.E + tk.S + tk.N)
+    textbox.grid(column = 1, row = 2, sticky = tk.W + tk.E + tk.S + tk.N,
+                 columnspan = 2)
     textbox.insert(tk.END, text)
     def return_press(event):
         textbox.insert(tk.INSERT, '\n')
