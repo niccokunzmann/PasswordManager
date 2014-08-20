@@ -92,4 +92,5 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
-passwords.json
+
+*.json
