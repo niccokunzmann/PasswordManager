@@ -7,6 +7,10 @@ function parse_passwords() {
   // http://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
   var password_list = document.getElementById("password_list");
   password_list.innerHTML = '';
+  // empty password information
+  document.getElementById("password_name").textContent = "";
+  document.getElementById("password_text").textContent = "";
+  document.getElementById("decrypted_password").textContent = "";
   // get the password json
   password_json_textarea = document.getElementsByName("password_json")[0];
   password_json_textarea.style.background = 'red';
