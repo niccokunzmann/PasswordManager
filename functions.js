@@ -110,7 +110,7 @@ function show_password_at(index) {
   password = passwords[index];
   document.getElementById("password_name").textContent = password.name;
   document.getElementById("password_text").textContent = password.text;
-  document.getElementById("decrypted_password").innerHTML = '<input type="button" onclick="show_password(' + index + ');" value="show password" /><div class="plain_password" id="plain_password"></div>';
+  document.getElementById("decrypted_password").innerHTML = '<input type="button" onclick="show_password(' + index + ');" value="show password" id="show_password_button" /><div class="plain_password" id="plain_password"></div>';
 }
 
 function decrypt(password) {
@@ -140,13 +140,16 @@ function decrypt(password) {
 
 function show_password(index) {
   plain_password_container = document.getElementById('plain_password');
+  password_button = document.getElementById('show_password_button');
   if (plain_password_container.textContent == "") {
     password = passwords[index];
     decrypted_password = decrypt(password);
     plain_password_container.textContent = decrypted_password;
     selectElementContents(plain_password_container);
+    password_button.value = "hide password";
   } else {
     plain_password_container.textContent = "";
+    password_button.value = "show password";
   }
 }
 
