@@ -3,6 +3,18 @@
     
   </head>
   <body>
-    <iframe src="https://raw.githubusercontent.com/niccokunzmann/PasswordManager/master/manager.html" ></iframe>
+    <!-- http://aplus.rs/2006/insert-html-page-into-another-html-page/ -->
+    <!--[if IE]>
+    <object classid="clsid:25336920-03F9-11CF-8FD0-00AA00686F13" data="https://raw.githubusercontent.com/niccokunzmann/PasswordManager/master/manager.html">
+    <p>backup content</p>
+    </object>
+    <![endif]-->
+    
+    <!--[if !IE]> <-->
+    <object type="text/html" data="https://raw.githubusercontent.com/niccokunzmann/PasswordManager/master/manager.html">
+    <p>backup content</p>
+    </object>
+    <!--> <![endif]-->
+
   </body>
 </html>
