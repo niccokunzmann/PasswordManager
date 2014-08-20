@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="sha512.js" ></script>
+    <script type="text/javascript" src="functions.js" ></script>
+    <title>Password Viewer</title>
+  </head>
+  <body>
+  <noscript>
+    <h1> need javascript </h1>
+  </noscript>
+    <div class="source_input">
+      <p>
+        Insert password file here:
+      </p>
+      <!-- http://de.selfhtml.org/html/formulare/eingabe.htm#bereiche -->
+      <textarea name="password_json" cols="50" rows="10"></textarea>
+      <p>
+        <input type="button" name="start" value="parse passwords" onclick="parse_passwords();" />
+      </p>
+    </div>
+    <div class="password_list" id="password_list">
+      <!-- auto-generated content -->
+    </div>
+    <div class="password_information">
+      <div class="master_password">
+        <p>
+          Enter correct master password to decrypt passwords:
+        </p>
+        <input type="password" name="master_password" id="master_password" size="40" onKeyUp="update_master_password();"/>
+      </div>
+      <div class="password_name" id="password_name">
+        <!-- auto-generated content -->
+      </div>
+      <div class="password_text" id="password_text">
+        <!-- auto-generated content -->
+      </div>
+      <div class="decrypted_password" id="decrypted_password">
+        <!-- auto-generated content -->
+      </div>
+    </div>
+  </body>
+</html>
