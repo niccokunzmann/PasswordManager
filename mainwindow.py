@@ -41,8 +41,14 @@ class MainWindow(tk.Tk, object):
         self.info_frame = info_frame = tk.Frame(self.paned_window)
         self.paned_window.add(self.info_frame)
 
-        self.entry_name_label = tk.Label(info_frame)
-        self.entry_name_label.pack(fill = tk.X)
+        self.name_frame = tk.Frame(info_frame)
+        self.name_frame.pack(fill = tk.X)
+        self.entry_name_entry = tk.Entry(self.name_frame)
+        self.entry_name_entry.pack(fill = tk.X, side = tk.LEFT, expand = True)
+        self.save_info_button = tk.Button(self.name_frame, text = "save", 
+                                          command = self.save_info)
+        self.save_info_button.pack(side = tk.LEFT)
+        
         self.entry_text = tk.Text(info_frame, height = 1, width = 30)
         self.entry_text.pack(fill = tk.BOTH, expand = True)
 
@@ -62,6 +68,7 @@ class MainWindow(tk.Tk, object):
         self.bind('<KeyPress-Escape>', self.minimize)
 
         self.update_list()
+        self.hide_password()
 
     def close(self, event = None):
         self.quit()
@@ -97,13 +104,34 @@ class MainWindow(tk.Tk, object):
         return entries
 
     def update_info_frame(self, entry):
-        self.entry_name_label['text'] = entry.name
+        self.entry_name_entry.delete(0, tk.END)
+        self.entry_name_entry.insert(0, entry.name)
         self.entry_text.delete("0.0", tk.END)
         self.entry_text.insert(tk.END, entry.text)
         self.entry_password_button['command'] = lambda: self.show_password(entry)
+        self.hide_password()
+
+    def save_info(self, event = None):
+        name = self.entry_name_entry.get()
+        text = self.entry_text.get("0.0", tk.END)
+        new_password = self.entry_password_entry.get()
+        old_password = self.password_shown
+        set_password = old_password is not None and \
+                       old_password != new_password and \
+                       messagebox.askyesno("Change Password?", "Should the password be changed?")
+        with self.database:
+            self.current_entry.name = name
+            self.current_entry.text = text
+            if set_password:
+                self.current_entry.password = new_password
+        self.update_list()
+        self.update_info_frame(self.current_entry)
+
+    def hide_password(self):
         self.entry_password_button.pack(fill = tk.X)
         self.entry_password_entry.delete(0, tk.END)
         self.entry_password_entry.pack_forget()
+        self.password_shown = None
 
     def show_password(self, entry):
         password = entry.password
@@ -111,7 +139,8 @@ class MainWindow(tk.Tk, object):
         self.entry_password_entry.insert(0, password)
         self.entry_password_button.pack_forget()
         self.entry_password_entry.pack(fill = tk.X)
-
+        self.password_shown = password
+        
     def copy_password_to_clipboard(self, event = None):
         password = self.current_entry.password
         self.clipboard_clear()
