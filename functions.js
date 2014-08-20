@@ -19,12 +19,18 @@ function parse_passwords() {
   // http://stackoverflow.com/questions/4935632/how-to-parse-json-in-javascript
   password_database = JSON.parse(password_json);
   if (password_database.passwords === undefined) {
-    if (password_database[0] === undefined) {
-      alert("Could not find passwords.");
-      return;
+    if (password_database.encrypted_password == undefined || password_database.password_salt == undefined) {
+      if (password_database[0] === undefined) {      
+        alert("Could not find passwords.");
+        return;
+      } else {
+        passwords = password_database;
+        master_password_hash = undefined;
+      }
+    } else {
+      passwords = [password_database];
+      master_password_hash = undefined;
     }
-    passwords = password_database;
-    master_password_hash = undefined;
   } else {
     passwords = password_database.passwords;
     master_password_hash = password_database.master_password_hash;
@@ -75,23 +81,21 @@ if (!(s.hexDecode().hexEncode() == s)) {
 }
 
 function update_master_password() {
-  if (master_password_hash === undefined) {
-    return;
-  }
   master_password_input = document.getElementById('master_password')
   raw_master_password = encode_utf8(master_password_input.value);
-  //alert(raw_master_password);
   _master_password_hash = sha512(raw_master_password);
-  //alert(_master_password_hash);
   master_password = _master_password_hash.hexDecode();
-  master_password_hash2 = sha512(master_password);
-  //alert(master_password_hash2 + " == " + master_password_hash);
-  // change background color
-  // http://stackoverflow.com/questions/197748/how-do-i-change-the-background-color-with-javascript
-  if (master_password_hash2.toLowerCase() == master_password_hash.toLowerCase()) {
-    master_password_input.style.background = "green";
+  if (master_password_hash === undefined) {
+    master_password_input.style.background = "white";
   } else {
-    master_password_input.style.background = "red";
+    master_password_hash2 = sha512(master_password);
+    // change background color
+    // http://stackoverflow.com/questions/197748/how-do-i-change-the-background-color-with-javascript
+    if (master_password_hash2.toLowerCase() == master_password_hash.toLowerCase()) {
+      master_password_input.style.background = "green";
+    } else {
+      master_password_input.style.background = "red";
+    }
   }
 }
 
@@ -167,4 +171,9 @@ function selectElementContents(el) {
         textRange.moveToElementText(el);
         textRange.select();
     }
+}
+
+function delete_master_password() {
+  document.getElementById('master_password').value = '';
+  update_master_password();
 }
