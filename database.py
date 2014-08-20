@@ -54,9 +54,13 @@ class MasterPassword(object):
     @password.setter
     def password(self, password):
         # do not use the original password but the hash instead
+        print(password)
         password_bytes = password.encode('UTF-8')
+        print(password_bytes)
         self.bytes = hash_binary(password_bytes)
+        print(base64.b16encode(self.bytes))
         self.hash = hash_hex(self.bytes)
+        print(self.hash)
 
     @property
     def bytes(self):

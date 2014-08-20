@@ -22,6 +22,7 @@ def _encrypt_password(password, salt, master_password):
     assert isinstance(master_password, bytes)
     encryption_stream = hash_binary(master_password, salt) + \
                         hash_binary(salt, master_password)
+    print(base64.b16encode(encryption_stream))
     assert len(encryption_stream) >= len(password)
     encrypted_password = []
     for i in range(len(password)):

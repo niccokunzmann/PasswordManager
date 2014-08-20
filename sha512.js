@@ -191,10 +191,12 @@
   };
 
   var hasUTF8 = function(message) {
+    /*
     var i = message.length;
     while(i--)
       if(message.charCodeAt(i) > 127)
         return true;
+    return false; */
     return false;
   };
 
