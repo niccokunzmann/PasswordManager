@@ -39,7 +39,7 @@ Try it out
 
 ![](./demonstration/PasswordManager.png)  
 In the picture above, the password for test2 shall be added to the manager using the [passwords.json](./demonstration/passwords.json) file in the [demonstration](./demonstration/) folder.
-The password is `password`. [Try out the web version]().
+The password is `password`. [Try out the web version](http://rawgit.com/niccokunzmann/PasswordManager/master/manager.html?load=https%3A%2F%2Fraw.githubusercontent.com%2Fniccokunzmann%2FPasswordManager%2Fmaster%2Fdemonstration%2Fpasswords_viewer.js).
 
 
 License
