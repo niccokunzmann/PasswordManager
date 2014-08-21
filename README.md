@@ -34,6 +34,14 @@ Web Version
 The web version can be found in the [manager.html](http://rawgit.com/niccokunzmann/PasswordManager/master/manager.html). You, not the file, will need read access to the passwords.json file. You can open it with any text editor and copy the content into the website.  
 After you typed in the correct master password you can decrypt the passwords.
 
+Try it out
+----------
+
+![](./demonstration/PasswordManager.png)  
+In the picture above, the password for test2 shall be added to the manager using the [passwords.json](./demonstration/passwords.json) file in the [demonstration](./demonstration/) folder.
+The password is `password`. [Try out the web version]().
+
+
 License
 -------
 
