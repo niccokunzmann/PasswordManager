@@ -3,6 +3,7 @@ try:
 except ImportError:
     import tkinter as tk
 
+from encryption import new_random_password, PASSWORD_CHARACTERS, character_ranges
 
 PASSWORD_CHARACTER = u'\u25CF'
 
@@ -59,14 +60,18 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
     password_label.grid(column = 0, row = 1)
     password_entry = tk.Entry(master = entry_frame, show = PASSWORD_CHARACTER)
     password_entry.grid(column = 1, row = 1, sticky = tk.W + tk.E)
+    if password is None:
+        password = new_random_password()
     password_entry.insert(0, password)
-    def copy_password():
-        entry_frame.clipboard_clear()
-        entry_frame.clipboard_append(password_entry.get())
-        notify_about_copy()
-    copy_password_button = tk.Button(master = entry_frame, text = "copy",
-                                     command = copy_password)
-    copy_password_button.grid(column = 2, row = 1)
+    bind_copy(password_entry)
+
+    def new_password(event = None):
+        password = ask_new_password()
+        password_entry.delete(0, tk.END)
+        password_entry.insert(0, password)
+    new_password_button = tk.Button(master = entry_frame, text = "new",
+                                     command = new_password)
+    new_password_button.grid(column = 2, row = 1)
     
     text_label = tk.Label(master = entry_frame, text = 'info')
     text_label.grid(column = 0, row = 2, sticky = tk.E + tk.S + tk.N)
@@ -78,14 +83,96 @@ def ask_add_password(entry_frame, name = '', password = None, text = ''):
         textbox.insert(tk.INSERT, '\n')
         return "break"
     textbox.bind("<KeyPress-Return>", return_press)
-    def enter(event = None):
-        password_entry.selection_range(0, tk.END)
-    password_entry.bind('<FocusIn>', enter)
     name_entry.focus_set()
     return 'New Password', lambda: (name_entry.get(),
                                     password_entry.get(),
                                     textbox.get('0.0', tk.END))
 
+def bind_copy(password_entry):
+    def copy_password(event = None):
+        password_entry.clipboard_clear()
+        password_entry.clipboard_append(password_entry.get())
+        notify_about_copy()
+        return "break"
+    password_entry.bind('<Control-c>', copy_password)
+    password_entry.bind('<Control-C>', copy_password)
+    def enter(event = None):
+        password_entry.selection_range(0, tk.END)
+    password_entry.bind('<FocusIn>', enter)
+
+@dialog
+def ask_new_password(root):
+    password_frame = tk.Frame(root)
+    password_frame.pack(fill = tk.X)
+    password_entry = tk.Entry(password_frame, show = PASSWORD_CHARACTER)
+    bind_copy(password_entry)
+    password_entry.pack(side = tk.LEFT, fill = tk.X, expand = True)
+
+    def new_password(event = None):
+        password_length = number_of_chracters_entry.get()
+        if not password_length.isdigit():
+            if not password_length and event:
+                return
+            else:
+                password_length = '16'
+            number_of_chracters_entry.delete(0, tk.END)
+            number_of_chracters_entry.insert(0, password_length)
+        password_length = int(password_length)
+        characters = get_characters()
+        if not characters:
+            return
+        new_password = new_random_password(password_length, characters)
+        password_entry.delete(0, tk.END)
+        root.after(100, password_entry.insert, 0, new_password)
+
+    number_of_chracters_entry = tk.Entry(password_frame, width = 2)
+    number_of_chracters_entry.insert(0, '16')
+    number_of_chracters_entry.bind('<KeyRelease>', new_password)
+    number_of_chracters_entry.pack(side = tk.LEFT)
+        
+    new_password_button = tk.Button(password_frame, command = new_password,
+                                    text = 'new')
+    new_password_button.pack(side = tk.LEFT)
+
+    characters_frame = tk.Frame(root)
+    characters_frame.pack(fill = tk.X)
+
+    characters_text = tk.Text(root,  width = 30, height = 5)
+    characters_text.insert('0.0', PASSWORD_CHARACTERS)
+    characters_text.pack(fill = tk.BOTH, expand = True)
+    def get_characters():
+        characters = characters_text.get('0.0', tk.END)
+        characters = [character for character in characters if ord(character) > 32]
+        return ''.join(characters)
+    def toggle_characters(new_characters):
+        characters = get_characters()
+        if any(character in characters for character in new_characters):
+            for character in new_characters:
+                characters = characters.replace(character, '')
+        else:
+            characters = ''.join(new_characters) + characters
+        characters_text.delete('0.0', tk.END)
+        characters_text.insert('0.0', characters)
+        new_password()
+
+
+    alhabet_button = tk.Button(characters_frame, text = 'a-zA-Z',
+        command = lambda: toggle_characters(character_ranges('az', 'AZ')))
+    alhabet_button.pack(side = tk.LEFT)
+
+    numbers_button = tk.Button(characters_frame, text = '0-9',
+        command = lambda: toggle_characters(character_ranges('09')))
+    numbers_button.pack(side = tk.LEFT)
+
+    specials_button = tk.Button(characters_frame, text = '!-~',
+        command = lambda: toggle_characters(character_ranges('!/', ':@', '[`', '{~')))
+    specials_button.pack(side = tk.LEFT)
+
+    russian_button = tk.Button(characters_frame, text = 'а-яА-Я',
+        command = lambda: toggle_characters(character_ranges('ая', 'АЯ')))
+    russian_button.pack(side = tk.LEFT)
+    new_password()
+    return 'Generate Password', lambda: password_entry.get()
 
 def notify(text, duration_seconds):
     root = tk.Toplevel()
@@ -111,4 +198,8 @@ def notify_file(file):
         pass
     notify(file.read(), None)
 
-__all__ = ['ask_password', 'ask_add_password', 'notify_about_copy', 'notify', 'notify_file']
+__all__ = ['ask_password', 'ask_add_password', 'notify_about_copy', 'notify',
+           'notify_file', 'ask_new_password']
+
+if __name__ == '__main__':
+    print(ask_add_password())

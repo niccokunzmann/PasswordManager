@@ -34,6 +34,7 @@ def encrypt_password(password, salt, master_password):
     encrypted_password = _encrypt_password(password, salt, master_password)
     decrypted_password = _encrypt_password(encrypted_password, salt, master_password)
     assert decrypted_password == password
+    assert encrypted_password != decrypted_password
     return base64.b64encode(encrypted_password).decode('UTF-8')
 
 def decrypt_password(encrypted_password, salt, master_password):
@@ -42,6 +43,7 @@ def decrypt_password(encrypted_password, salt, master_password):
     decrypted_password = _encrypt_password(encrypted_password, salt, master_password)
     encrypted_password2 = _encrypt_password(decrypted_password, salt, master_password)
     assert encrypted_password == encrypted_password2
+    assert encrypted_password != decrypted_password
     return decrypted_password.decode('UTF-8')
 
 def new_salt():
@@ -49,10 +51,11 @@ def new_salt():
 
 # "".join(map(chr, range(33, 127))) without "
 PASSWORD_CHARACTERS =  '''!#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'''
+character_ranges = lambda *ranges: ''.join(sum(map(lambda r: list(map(chr, range(ord(r[0]), ord(r[1]) + 1))), ranges), []))
 
 def new_random_password(length = 25, characters = PASSWORD_CHARACTERS):
     s = ""
-    assert len(characters) <= 256
+    assert 1 <= len(characters) <= 256
     while len(s) < length:
         index = ord(os.urandom(1))
         if index >= len(characters):
@@ -62,4 +65,4 @@ def new_random_password(length = 25, characters = PASSWORD_CHARACTERS):
 
 
 __all__ = ['hash_hex', 'encrypt_password', 'decrypt_password', 'new_salt',
-           'new_random_password']
+           'new_random_password', character_ranges]
