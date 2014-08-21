@@ -6,14 +6,20 @@
     <script type="text/javascript" src="functions.js" ></script>
     <title>Password Viewer</title>
   </head>
-  <body>
+  <body onload="get_and_parse_passwords();">
   <noscript>
     <h1> need javascript </h1>
   </noscript>
     <div class="source_input">
-      Insert the contents of the passwords.json file here: <br />
-      <!-- http://de.selfhtml.org/html/formulare/eingabe.htm#bereiche -->
-      <textarea name="password_json" cols="50" rows="10" onKeyUp="parse_passwords();"></textarea>
+      <div class="load_password">
+        Enter a URL of the passwords_viewer.js file: <br/>
+        <input type="text" id="load_password" size="50" onkeyup="return load_passwords_from_javascript_event(event);"/>
+      </div>
+      <div class="show_passwords_source">
+        Insert the contents of the passwords.json file here: <br />
+        <!-- http://de.selfhtml.org/html/formulare/eingabe.htm#bereiche -->
+        <textarea name="password_json" cols="50" rows="10" onKeyUp="parse_passwords();"></textarea>
+      </div>
     </div>
     <div class="password_information">
       <div class="master_password">
@@ -41,8 +47,5 @@
       </div>
     </div>
     
-    <script type="text/javascript">
-      parse_passwords();
-    </script>
   </body>
 </html>

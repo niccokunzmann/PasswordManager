@@ -110,12 +110,24 @@ class Database(object):
 
     _config = None
     _master_password = None
+    javascript_template_path = 'passwords_viewer_template.js'
+    javascript_path = 'passwords_viewer.js'
+    auto_save_to_javascript = True
 
     new_master_password = MasterPassword
 
     def __init__(self, file_name):
         self.file_name = file_name
         self.with_nesting = 0
+
+    def save_to_javascript(self):
+        with open(self.file_name) as source_file, \
+             open(self.javascript_template_path) as javascript_template_file, \
+             open(self.javascript_path, 'w') as javascript_file:
+            json = source_file.read()
+            template = javascript_template_file.read()
+            source = template.format(passwords = json)
+            javascript_file.write(source)
 
     @property
     def master_password(self):
@@ -159,7 +171,8 @@ class Database(object):
                 raise TransactionAbort('An error aborted the transaction.')
             with open(self.file_name, 'w') as file:
                 json.dump(config, file)
-
+            if self.auto_save_to_javascript:
+                self.save_to_javascript()
 
     @property
     def _passwords(self):

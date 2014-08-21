@@ -2,6 +2,69 @@ var passwords;
 var master_password_hash;
 var master_password;
 
+function get_and_parse_passwords() {
+  parse_passwords();
+  load_script_url = getQueryParams().load;
+  if (load_script_url != undefined) {
+    // add script tag
+    // http://www.hunlock.com/blogs/Howto_Dynamically_Insert_Javascript_And_CSS
+    var headID = document.getElementsByTagName("head")[0];         
+    var newScript = document.createElement('script');
+    newScript.type = 'text/javascript';
+    newScript.src = load_script_url;
+    headID.appendChild(newScript);
+    url_input = document.getElementById("load_password");
+    url_input.value = load_script_url;
+  }
+}
+
+function load_passwords_from_javascript_event(event) {
+  // http://www.cs.tut.fi/~jkorpela/forms/enter.html
+  // http://stackoverflow.com/questions/905222/enter-key-press-event-in-javascript
+  if (event && event.keyCode == 13) {
+    load_passwords_from_javascript()
+  }
+}
+
+function load_passwords_from_javascript() {
+  url_input = document.getElementById("load_password");
+  url = url_input.value;
+  set_load_script_url(url);
+}
+
+function set_load_script_url(url) {
+  document.location.search = "?load=" + encodeURIComponent(url);
+}
+
+function getQueryParams() {
+    // http://stackoverflow.com/questions/979975/how-to-get-the-value-from-url-parameter
+    qs = document.location.search;
+    qs = qs.split("+").join(" ");
+
+    var params = {}, tokens,
+        re = /[?&]?([^=]+)=([^&]*)/g;
+
+    while (tokens = re.exec(qs)) {
+        params[decodeURIComponent(tokens[1])]
+            = decodeURIComponent(tokens[2]);
+    }
+
+    return params;
+}
+
+function set_passwords(password_database) {
+  /* This is called by a script like passwordss.js
+   *
+   */
+   
+   password_json_textarea = document.getElementsByName("password_json")[0];
+   password_json_textarea.value = JSON.stringify(password_database);
+   password_json_textarea.style.background = 'red';
+   set_password_database(password_database);
+   password_json_textarea.style.background = 'green';
+   
+ }
+
 function parse_passwords() {
   // empty password list
   // http://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
@@ -15,9 +78,17 @@ function parse_passwords() {
   password_json_textarea = document.getElementsByName("password_json")[0];
   password_json_textarea.style.background = 'red';
   password_json = password_json_textarea.value;
+  if (password_json.length == 0) {
+    return;
+  }
   // parse json
   // http://stackoverflow.com/questions/4935632/how-to-parse-json-in-javascript
   password_database = JSON.parse(password_json);
+  set_password_database(password_database);
+  password_json_textarea.style.background = 'green';
+}
+  
+function set_password_database(password_database) {
   if (password_database.passwords === undefined) {
     if (password_database.encrypted_password == undefined || password_database.password_salt == undefined) {
       if (password_database[0] === undefined) {      
@@ -49,7 +120,6 @@ function parse_passwords() {
     password_list.innerHTML += '<input type="button" id="password_' + i + '" onclick="show_password_at(' + i + ')" class="password_button"/>\n';
     document.getElementById('password_' + i).value = password.name;
   }
-  password_json_textarea.style.background = 'green';
   update_master_password();
 };
 
@@ -177,3 +247,4 @@ function delete_master_password() {
   document.getElementById('master_password').value = '';
   update_master_password();
 }
+
