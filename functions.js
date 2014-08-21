@@ -151,6 +151,7 @@ if (!(s.hexDecode().hexEncode() == s)) {
 }
 
 function update_master_password() {
+  
   master_password_input = document.getElementById('master_password')
   raw_master_password = encode_utf8(master_password_input.value);
   _master_password_hash = sha512(raw_master_password);
@@ -248,3 +249,17 @@ function delete_master_password() {
   update_master_password();
 }
 
+function inactivityTime() {
+  // http://stackoverflow.com/a/10126042/1320237
+  var t;
+  window.onload = resetTimer;
+  document.onmousemove = resetTimer;
+  document.onkeypress = resetTimer;
+
+  function resetTimer() {
+      clearTimeout(t);
+      t = setTimeout(delete_master_password, 20000);
+  }
+};
+
+inactivityTime();
