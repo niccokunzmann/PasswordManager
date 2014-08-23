@@ -196,7 +196,7 @@ class Database(object):
         """the passwords in the database"""
         with self:
             entries = [self.new_password_entry(entry) for entry in self._passwords]
-        entries.sort(key = lambda entry: entry.name)
+        entries.sort(key = lambda entry: str(entry.name).lower())
         return entries
 
     def add_new_password_from_user(self):
