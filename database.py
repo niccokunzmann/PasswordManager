@@ -218,7 +218,7 @@ class Database(object):
                 try:
                     with self:
                         entry = self.add_new_password_from_export(password)
-                        successes.append(entry.name)
+                        successes.append(password.get("name", str(password)))
                 except:
                     traceback.print_exc(file = log_file)
                     print("Failed: ", password, file = log_file)
@@ -234,22 +234,41 @@ class Database(object):
 
 class PasswordEntry(object):
 
+    attributes = set()
+
     def fill_from_user(self):
         result = ask_add_password(password = new_random_password())
         if result is None:
             return
-        return self.fill_from_data(*result)
+        name, password, text = result
+        return self.fill_from_arguments(name = name,
+                                        password = password,
+                                        text = text,
+                                        deleted = False)
 
-    def fill_from_data(self, name, password, text):
-        self.name = name
-        self.password = password
-        self.text = text
-        self.deleted = False
-        self.database.add_password_entry(self)
-        return self
+    def fill_from_arguments(self, **attributes):
+        return self.fill_from_dict(attributes)
 
     def fill_from_export(self, export):
-        return self.fill_from_data(export['name'], export['password'], export['text'])
+        export = export.copy()
+        for attribute in list(export.keys()):
+            if attribute not in self.attributes:
+                export.pop(attribute)
+        export['deleted'] = False
+        return self.fill_from_dict(export)
+
+    def fill_from_dict(self, dictionairy):
+        if not set(dictionairy.keys()) <= self.attributes:
+            print(self.attributes)
+            print(set(dictionairy.keys()))
+            raise ValueError('Unknown attributes {} should be {}'.format(
+                ', '.join(set(dictionairy.keys()) - self.attributes),
+                ', '.join(self.attributes)))
+        for attribute in self.attributes:
+            if attribute in dictionairy:
+                setattr(self, attribute, dictionairy[attribute])
+        self.database.add_password_entry(self)
+        return self
 
     def __init__(self, database, dictionairy, master_password):
         self.database = database
@@ -263,6 +282,7 @@ class PasswordEntry(object):
     def name(self, value):
         with self.database:
             self.dictionairy[u'name'] = value
+    attributes.add('name')
 
     @property
     def password(self):
@@ -277,6 +297,7 @@ class PasswordEntry(object):
             encrypted_password = self.master_password.encrypt_password(password, password_salt)
             self.dictionairy[u'password_salt'] = password_salt
             self.dictionairy[u'encrypted_password'] = encrypted_password
+    attributes.add('password')
 
     new_salt = staticmethod(new_salt)
 
@@ -287,14 +308,17 @@ class PasswordEntry(object):
     def text(self, value):
         with self.database:
             self.dictionairy[u'text'] = value
+    attributes.add('text')
 
     @property
     def deleted(self):
         return self.dictionairy[u'deleted']
+    
     @deleted.setter
     def deleted(self, value):
         with self.database:
             self.dictionairy[u'deleted'] = value
+    attributes.add('deleted')
 
     def asDict(self):
         return self.dictionairy
@@ -305,4 +329,17 @@ class PasswordEntry(object):
     def export(self):
         return dict(name = self.name, password = self.password, text = self.text)
 
-   
+    def __eq__(self, other):
+        return other == self.dictionairy
+
+    def __hash__(self):
+        return hash(self.dictionairy)
+
+    def new_entry(self, entry = {}):
+        return self.database.new_password_entry(entry)
+
+    def duplicate(self, **attributes):
+        new_entry = self.new_entry(self.dictionairy.copy())
+        new_entry.fill_from_dict(attributes)
+        return new_entry
+

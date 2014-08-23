@@ -101,7 +101,7 @@ def bind_copy(password_entry):
     password_entry.bind('<FocusIn>', enter)
 
 @dialog
-def ask_new_password(root):
+def ask_new_password(root, title = 'Generate Password'):
     password_frame = tk.Frame(root)
     password_frame.pack(fill = tk.X)
     password_entry = tk.Entry(password_frame, show = PASSWORD_CHARACTER)
@@ -172,7 +172,7 @@ def ask_new_password(root):
         command = lambda: toggle_characters(character_ranges('ая', 'АЯ')))
     russian_button.pack(side = tk.LEFT)
     new_password()
-    return 'Generate Password', lambda: password_entry.get()
+    return title, lambda: password_entry.get()
 
 def notify(text, duration_seconds):
     root = tk.Toplevel()
