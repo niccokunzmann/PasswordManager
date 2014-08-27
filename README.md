@@ -52,4 +52,4 @@ Thanks
 
 Thanks to all the websites that helped. You can see it in the code. For the README it was
 
-- [https://thecustomizewindows.com/2013/09/opening-webpage-from-github-repo-for-dev-purpose/](https://thecustomizewindows.com/2013/09/opening-webpage-from-github-repo-for-dev-purpose/) to show the webbrowser from the master branch.
+- [https://thecustomizewindows.com/2013/09/opening-webpage-from-github-repo-for-dev-purpose/](https://thecustomizewindows.com/2013/09/opening-webpage-from-github-repo-for-dev-purpose/) to show the [web version](http://rawgit.com/niccokunzmann/PasswordManager/master/manager.html?load=https%3A%2F%2Fraw.githubusercontent.com%2Fniccokunzmann%2FPasswordManager%2Fmaster%2Fdemonstration%2Fpasswords_viewer.js) from the master branch.
