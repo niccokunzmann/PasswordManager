@@ -57,6 +57,9 @@ class MasterPassword(object):
         password_bytes = password.encode('UTF-8')
         self.bytes = hash_binary(password_bytes)
         self.hash = hash_hex(self.bytes)
+        assert password_bytes != self.bytes
+        assert password_bytes != self.hash_bytes
+        assert self.bytes != self.hash_bytes
 
     @property
     def bytes(self):
@@ -96,6 +99,10 @@ class MasterPassword(object):
             self._hash = hash
         elif self._hash != hash:
             raise InvalidMasterPassword("The entered master password does not match the original.")
+
+    @property
+    def hash_bytes(self):
+        return base64.b16decode(self.hash.encode('UTF-8').upper())
         
     def delete(self):
         self._bytes = None
