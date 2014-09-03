@@ -16,6 +16,8 @@ import idlelib.ScrolledList as ScrolledList
 
 from database import Database
 from dialog import notify_about_copy, notify_file, ask_new_password, notify
+
+LAST_PRESSED_TIME_INTERVAL = 0.5
     
 class MainWindow(tk.Tk, object):
 
@@ -37,6 +39,10 @@ class MainWindow(tk.Tk, object):
         self.password_list.fill_menu = self.fill_menu
         self.password_list.on_select = self.on_select
         self.password_list.on_double = self.on_double
+        
+        self.password_list.listbox.bind('<Any-KeyPress>', self.select_by_letter)
+        self.password_list.listbox.bind('<Any-Return>', self.copy_current_password_to_clipboard)
+        self.reset_last_pressed()
 
         self.selected_count = 0
 
@@ -84,6 +90,11 @@ class MainWindow(tk.Tk, object):
         if self.current_entry:
             self.update_info_frame(self.current_entry)
 
+    def select(self, index):
+        """use this to select an entry"""
+        self.password_list.select(index)
+        self.on_select(index)
+
     def replace_password(self):
         selects = self.selected_count
         entry = self.current_entry
@@ -106,7 +117,48 @@ class MainWindow(tk.Tk, object):
                         "you did not click. Maybe the application "\
                         "is open twice?"
             notify(text, 0)
-                
+
+    last_pressed_time_interval = LAST_PRESSED_TIME_INTERVAL
+    
+    def select_by_letter(self, event = None):
+        letter = event.keysym
+        self.last_pressed += letter
+        self.restart_last_pressed_reset()
+        self.select_entry_by_name(self.last_pressed)
+
+    def restart_last_pressed_reset(self):
+        if self.last_pressed_after_identifier:
+            self.after_cancel(self.last_pressed_after_identifier)
+        self.last_pressed_after_identifier = self.after(
+            int(self.last_pressed_time_interval * 1000),
+            self.reset_last_pressed)
+
+    def reset_last_pressed(self):
+        self.last_pressed_after_identifier = None
+        self.last_pressed = ""
+
+    def select_entry_by_name(self, name):
+        to_find = name.lower()
+        names = [entry.as_list_entry.lower() for entry in self.password_entries]
+        index = None
+        # find entry by starting string
+        for i, name in enumerate(names):
+            if name.startswith(to_find):
+                index = i
+                break
+        # find entry by containing
+        if index is None:
+            for i, name in enumerate(names):
+                if to_find in name:
+                    index = i
+                    break
+        if index is not None:
+            self.select(index)
+        else:
+            # select next best entry
+            index = self.current_index
+            if index is not None and index < len(names) - 1:
+                self.select(index + 1)
 
     def switched_entries(self, selects):
         return selects != self.selected_count
@@ -127,7 +179,7 @@ class MainWindow(tk.Tk, object):
         selection = self.password_list.listbox.curselection()
         self.password_list.clear()
         for entry in self.password_entries:
-            self.password_list.append(entry.name)
+            self.password_list.append(entry.as_list_entry)
             if entry.deleted:
                 self.password_list.listbox.itemconfigure(tk.END,
                                                          background = 'gray80')
@@ -218,8 +270,12 @@ class MainWindow(tk.Tk, object):
         self.update_list()
 
     @property
+    def current_index(self):
+        return self.password_list.listbox.index("active")
+
+    @property
     def current_entry(self):
-        index = self.password_list.listbox.index("active")
+        index = self.current_index
         if not self.password_entries:
             return None
         return self.password_entries[index]

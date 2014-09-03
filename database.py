@@ -350,3 +350,6 @@ class PasswordEntry(object):
         new_entry.fill_from_dict(attributes)
         return new_entry
 
+    @property
+    def as_list_entry(self):
+        return self.name
