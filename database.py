@@ -8,6 +8,7 @@ import base64
 import threading
 import os
 import traceback
+from contextlib import suppress
 
 MASTER_PASSWORD_IN_MEMORY_SECONDS = 10
 
@@ -128,13 +129,14 @@ class Database(object):
         self.with_nesting = 0
 
     def save_to_javascript(self):
-        with open(self.file_name) as source_file, \
-             open(self.javascript_template_path) as javascript_template_file, \
-             open(self.javascript_path, 'w') as javascript_file:
-            json = source_file.read()
-            template = javascript_template_file.read()
-            source = template.format(passwords = json)
-            javascript_file.write(source)
+        with suppress(PermissionError):
+            with open(self.file_name) as source_file, \
+                 open(self.javascript_template_path) as javascript_template_file, \
+                 open(self.javascript_path, 'w') as javascript_file:
+                json = source_file.read()
+                template = javascript_template_file.read()
+                source = template.format(passwords = json)
+                javascript_file.write(source)
 
     @property
     def master_password(self):
