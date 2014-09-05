@@ -122,6 +122,15 @@ class MainWindow(tk.Tk, object):
     
     def select_by_letter(self, event = None):
         letter = event.keysym
+        if not letter:
+            return
+        if letter != ' ':
+            found = False
+            for name in self.entry_names:
+                if letter in name:
+                    found = True
+            if not found:
+                return
         self.last_pressed += letter
         self.restart_last_pressed_reset()
         self.select_entry_by_name(self.last_pressed)
@@ -137,9 +146,13 @@ class MainWindow(tk.Tk, object):
         self.last_pressed_after_identifier = None
         self.last_pressed = ""
 
+    @property
+    def entry_names(self):
+        return [entry.as_list_entry.lower() for entry in self.password_entries]
+
     def select_entry_by_name(self, name):
         to_find = name.lower()
-        names = [entry.as_list_entry.lower() for entry in self.password_entries]
+        names = self.entry_names
         index = None
         # find entry by starting string
         for i, name in enumerate(names):
@@ -263,6 +276,7 @@ class MainWindow(tk.Tk, object):
             else:
                 self.current_entry.deleted = True
         self.update_list()
+        self.update_info_frame(self.current_entry)
 
     def restore_password(self, event = None):
         with self.database:
