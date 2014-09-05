@@ -3,6 +3,7 @@ import os
 import sys
 import io
 import traceback
+from contextlib import contextmanager
 
 try:
     import Tkinter as tk
@@ -85,8 +86,30 @@ class MainWindow(tk.Tk, object):
         self.bind('<Control-n>', self.new_password)
         self.bind('<KeyPress-Escape>', self.minimize)
 
-        self.update_list()
+        self.database_updated()
         self.hide_password()
+        self.select(0)
+
+    @property
+    def current_entry_name(self):
+        selection = self.password_list.listbox.curselection()
+        if selection:
+            index = selection[0]
+            name = self.password_list.get(index)
+            return name
+
+    @property
+    @contextmanager
+    def updating_database(self):
+        current_entry_name = self.current_entry_name
+        with self.database:
+            yield
+        self.database_updated()
+        if current_entry_name:
+            self.select_entry_by_name(current_entry_name)
+
+    def database_updated(self):
+        self.update_list()
         if self.current_entry:
             self.update_info_frame(self.current_entry)
 
@@ -133,7 +156,8 @@ class MainWindow(tk.Tk, object):
                 return
         self.last_pressed += letter
         self.restart_last_pressed_reset()
-        self.select_entry_by_name(self.last_pressed)
+        self.select_entry_by_name(self.last_pressed,
+                                  select_next_best_entry = True)
 
     def restart_last_pressed_reset(self):
         if self.last_pressed_after_identifier:
@@ -150,7 +174,7 @@ class MainWindow(tk.Tk, object):
     def entry_names(self):
         return [entry.as_list_entry.lower() for entry in self.password_entries]
 
-    def select_entry_by_name(self, name):
+    def select_entry_by_name(self, name, select_next_best_entry = False):
         to_find = name.lower()
         names = self.entry_names
         index = None
@@ -167,7 +191,7 @@ class MainWindow(tk.Tk, object):
                     break
         if index is not None:
             self.select(index)
-        else:
+        elif select_next_best_entry:
             # select next best entry
             index = self.current_index
             if index is not None and index < len(names) - 1:
@@ -184,9 +208,8 @@ class MainWindow(tk.Tk, object):
         self.iconify()
 
     def new_password(self, event = None):
-        with self.database:
+        with self.updating_database:
             self.database.add_new_password_from_user()
-        self.update_list()
 
     def update_list(self):
         selection = self.password_list.listbox.curselection()
@@ -265,23 +288,20 @@ class MainWindow(tk.Tk, object):
         notify_about_copy()
 
     def show_deleted_passwords(self, event = None):
-        self.update_list()
+        self.database_updated()
 
     def delete_password(self, event = None):
-        with self.database:
+        with self.updating_database:
             if self.current_entry.deleted:
                 message = 'Do you want to delete {} for ever?'.format(self.current_entry.name)
                 if messagebox.askokcancel('Delete?', message):
                     self.current_entry.remove()
             else:
                 self.current_entry.deleted = True
-        self.update_list()
-        self.update_info_frame(self.current_entry)
 
     def restore_password(self, event = None):
-        with self.database:
+        with self.updating_database:
             self.current_entry.deleted = False
-        self.update_list()
 
     @property
     def current_index(self):
