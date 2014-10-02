@@ -45,6 +45,11 @@ def ask_password(root, question):
     password_entry = tk.Entry(master = root, show = PASSWORD_CHARACTER)
     password_entry.pack(fill = tk.X, expand = True)
     password_entry.focus_set()
+    password_entry.bind('<FocusIn>', lambda e: password_entry.configure(background = 'white'))
+    def focus_out(event):
+        password_entry.configure(background = 'red')
+        password_entry.bell()
+    password_entry.bind('<FocusOut>', focus_out)
     return 'password?', password_entry.get
 
 @dialog
