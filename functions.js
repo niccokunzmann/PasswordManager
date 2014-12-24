@@ -111,13 +111,20 @@ function set_password_database(password_database) {
   passwords.sort(function(p1, p2){
     if(p1.name < p2.name) return -1;
     if(p1.name > p2.name) return 1;
+    if(p1.deleted == p2.deleted) return 0;
+    if(p1.deleted) return 1;
+    if(p2.deleted) return -1;
     return 0;
   });
   // insert passwords
   // http://stackoverflow.com/questions/3010840/loop-through-array-in-javascript
   for (var i = 0; i < passwords.length; i++) {
     password = passwords[i];
-    password_list.innerHTML += '<input type="button" id="password_' + i + '" onclick="show_password_at(' + i + ')" class="password_button"/>\n';
+    style = '';
+    if (password.deleted) {
+       style += 'background: gray;';
+    }
+    password_list.innerHTML += '<input type="button" id="password_' + i + '" onclick="show_password_at(' + i + ')" class="password_button" style="' + style + '" />\n';
     document.getElementById('password_' + i).value = password.name;
   }
   update_master_password();
