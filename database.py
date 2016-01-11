@@ -48,6 +48,16 @@ class MasterPassword(object):
         except InvalidMasterPassword:
             self.ask()
 
+    def initialize_master_password(self):
+        password1 = ask_password('set master password:')
+        password2 = ask_password('retype master password:')
+        if password1 is None or password2 is None:
+            raise Cancel("The dialog was canceled.")
+        if password1 == password2:
+            self.password = password1
+        else:
+            self.initialize_master_password()
+            
     @property
     def password(self):
         raise TypeError('the password can not be used. Use bytes instead.')
@@ -88,7 +98,7 @@ class MasterPassword(object):
     @property
     def hash(self):
         if self._hash is None:
-            self.ask()
+            self.initialize_master_password()
         if self.has_bytes(): # negligible race condition
             assert self._hash == hash_hex(self.bytes)
         return self._hash
