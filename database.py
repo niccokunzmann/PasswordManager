@@ -201,8 +201,8 @@ class Database(object):
         return PasswordEntry(self, entry, self.master_password)
 
     def add_password_entry(self, entry):
-        dict = entry.asDict()
-        if dict not in self._passwords:
+        if entry not in self.passwords:
+            dict = entry.asDict()
             self._passwords.append(dict)
 
     def remove_password_entry(self, entry):
@@ -244,12 +244,24 @@ class Database(object):
         for success in successes:
             print("Success:", success, file = log_file)
 
-    def import_all_json(self, file, log_file):
+    def import_all_json(self, file_name, log_file):
         try:
-            passwords = json.load(file)
-            self.import_all(passwords, log_file)
+            with open(file_name) as file:
+                passwords = json.load(file)
+            if "passwords" in passwords:
+                self.import_from_other_database(file_name, log_file)
+            else:
+                self.import_all(passwords, log_file)
         except:
             traceback.print_exc(file = log_file)
+
+    def import_from_other_database(self, file_name, log_file):
+        db = self.new_database(file_name)
+        self.import_all(db.export_all(), log_file)
+
+    @classmethod
+    def new_database(cls, file_name):
+        return cls(file_name)
 
 class PasswordEntry(object):
 
@@ -349,10 +361,10 @@ class PasswordEntry(object):
         return dict(name = self.name, password = self.password, text = self.text)
 
     def __eq__(self, other):
-        return other == self.dictionairy
+        return other == self.export()
 
     def __hash__(self):
-        return hash(self.dictionairy)
+        return hash(self.export())
 
     def new_entry(self, entry = {}):
         return self.database.new_password_entry(entry)

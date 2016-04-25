@@ -318,8 +318,7 @@ class MainWindow(tk.Tk, object):
         file_name = filedialog.askopenfilename(filetypes = [("all files", "*")])
         log_file = io.StringIO()
         try:
-            with open(file_name) as file:
-                self.database.import_all_json(file, log_file)
+            self.database.import_all_json(file_name, log_file)
         except:
             traceback.print_exc(file = log_file)
         finally:
