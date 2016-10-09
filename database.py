@@ -240,9 +240,9 @@ class Database(object):
                         successes.append(password.get("name", str(password)))
                 except:
                     traceback.print_exc(file = log_file)
-                    print("Failed: ", password, file = log_file)
+                    log_file.write("Failed: {}".format(password))
         for success in successes:
-            print("Success:", success, file = log_file)
+            log_file.write("Success: {}".format(success))
 
     def import_all_json(self, file_name, log_file):
         try:

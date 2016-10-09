@@ -14,6 +14,7 @@ except ImportError:
     import tkinter.messagebox as messagebox
     import tkinter.filedialog as filedialog
 import idlelib.ScrolledList as ScrolledList
+import idlelib.macosxSupport as macosxSupport
 
 from database import Database
 from dialog import notify_about_copy, notify_file, ask_new_password, notify
@@ -26,6 +27,7 @@ class MainWindow(tk.Tk, object):
 
     def __init__(self, *args, **kw):
         tk.Tk.__init__(self, *args, **kw)
+        macosxSupport._initializeTkVariantTests(self)
         self.title('Password Manager')
 
         self.database = Database(self.password_file)
@@ -41,9 +43,11 @@ class MainWindow(tk.Tk, object):
         self.password_list.on_select = self.on_select
         self.password_list.on_double = self.on_double
         
+        self.last_pressed_variable = tk.StringVar(master = self)
+        self.choose_list_entry = None
+        
         self.password_list.listbox.bind('<Any-KeyPress>', self.select_by_letter)
-        self.password_list.listbox.bind('<Any-Return>', self.copy_current_password_to_clipboard)
-        self.reset_last_pressed()
+        self.password_list.listbox.bind('<Return>', self.copy_current_password_to_clipboard)
 
         self.selected_count = 0
 
@@ -84,11 +88,32 @@ class MainWindow(tk.Tk, object):
         self.show_deleted_entries.set(False)
 
         self.bind('<Control-n>', self.new_password)
-        self.bind('<KeyPress-Escape>', self.minimize)
+        self.bind('<Double-Escape>', self.minimize)
+        self.bind('<KeyPress-Escape>', self.reset_last_pressed)
 
         self.database_updated()
         self.hide_password()
+        self.reset_last_pressed()
         self.select(0)
+    
+    def move_list_up(self, event=None):
+        self.select(self.current_index - 1)
+        
+    def move_list_down(self, event=None):
+        self.select(self.current_index + 1)
+
+    def update_choose_list_entry(self):
+        print(self.choose_list_entry)
+        if self.last_pressed and self.choose_list_entry is None:
+            self.choose_list_entry = tk.Entry(self.password_list_frame, textvariable = self.last_pressed_variable)
+            self.choose_list_entry.pack(side = tk.BOTTOM, fill = tk.X, before = self.password_list.frame)
+            self.choose_list_entry.bind('<Any-KeyPress>', self.last_pressed_changed)
+            self.choose_list_entry.bind('<Key-Up>', self.move_list_up)
+            self.choose_list_entry.bind('<Key-Down>', self.move_list_down)
+            self.choose_list_entry.bind('<Key-Return>', self.copy_current_password_to_clipboard)
+        elif not self.last_pressed and self.choose_list_entry is not None:
+            self.choose_list_entry.pack_forget()
+            self.choose_list_entry = None
 
     @property
     def current_entry_name(self):
@@ -111,7 +136,7 @@ class MainWindow(tk.Tk, object):
     def database_updated(self):
         self.update_list()
         if self.current_entry:
-            self.update_info_frame(self.current_entry)
+            self.update_info_frame()
 
     def select(self, index):
         """use this to select an entry"""
@@ -144,58 +169,48 @@ class MainWindow(tk.Tk, object):
     last_pressed_time_interval = LAST_PRESSED_TIME_INTERVAL
     
     def select_by_letter(self, event = None):
-        letter = event.keysym
+        letter = event.char
         if not letter:
             return
-        if letter != ' ':
-            found = False
-            for name in self.entry_names:
-                if letter in name:
-                    found = True
-            if not found:
-                return
-        self.last_pressed += letter
-        self.restart_last_pressed_reset()
-        self.select_entry_by_name(self.last_pressed,
-                                  select_next_best_entry = True)
+        if event.keysym == "BackSpace":
+            while True:
+                self.last_pressed = self.last_pressed[:-1]
+                if not self.last_pressed or self.last_pressed[-1] != " ":
+                    break
+        else:
+            self.last_pressed += letter
+        # list already updated
+        beginnings = self.last_pressed.split()
+        entries = self.password_entries
+        if entries:
+            self.select(max(enumerate(entries),
+                            key=lambda i_entry: sum(any(part.startswith(beginning) for beginning in beginnings)
+                                                for part in i_entry[1].name.split()))[0])
 
-    def restart_last_pressed_reset(self):
-        if self.last_pressed_after_identifier:
-            self.after_cancel(self.last_pressed_after_identifier)
-        self.last_pressed_after_identifier = self.after(
-            int(self.last_pressed_time_interval * 1000),
-            self.reset_last_pressed)
-
-    def reset_last_pressed(self):
+    def reset_last_pressed(self, event=None):
         self.last_pressed_after_identifier = None
         self.last_pressed = ""
+        
+    def entry_matches(self, entry):
+        matches = self.last_pressed.split()
+        name = entry.name
+        return all(match in name for match in matches)
+    
+    @property
+    def last_pressed(self):
+        return self.last_pressed_variable.get()
+    @last_pressed.setter
+    def last_pressed(self, value):
+        self.last_pressed_variable.set(value)
+        self.last_pressed_changed()
+        
+    def last_pressed_changed(self, event=None):
+        self.update_list()
+        self.update_choose_list_entry()
 
     @property
     def entry_names(self):
         return [entry.as_list_entry.lower() for entry in self.password_entries]
-
-    def select_entry_by_name(self, name, select_next_best_entry = False):
-        to_find = name.lower()
-        names = self.entry_names
-        index = None
-        # find entry by starting string
-        for i, name in enumerate(names):
-            if name.startswith(to_find):
-                index = i
-                break
-        # find entry by containing
-        if index is None:
-            for i, name in enumerate(names):
-                if to_find in name:
-                    index = i
-                    break
-        if index is not None:
-            self.select(index)
-        elif select_next_best_entry:
-            # select next best entry
-            index = self.current_index
-            if index is not None and index < len(names) - 1:
-                self.select(index + 1)
 
     def switched_entries(self, selects):
         return selects != self.selected_count
@@ -212,17 +227,18 @@ class MainWindow(tk.Tk, object):
             self.database.add_new_password_from_user()
 
     def update_list(self):
-        selection = self.password_list.listbox.curselection()
+        current_entry = self.current_entry
         self.password_list.clear()
         for entry in self.password_entries:
             self.password_list.append(entry.as_list_entry)
             if entry.deleted:
                 self.password_list.listbox.itemconfigure(tk.END,
                                                          background = 'gray80')
+            if current_entry and current_entry.name == entry.name:
+                self.password_list.select(tk.END)
         if not self.password_entries:
             self.password_list.listbox.delete(0, tk.END)
-        if selection:
-            self.password_list.select(selection[0])
+        self.update_info_frame()
 
     @property
     def password_entries(self):
@@ -230,9 +246,14 @@ class MainWindow(tk.Tk, object):
             entries = self.database.passwords
         if not self.show_deleted_entries.get():
             entries = [entry for entry in entries if not entry.deleted]
-        return entries
+        selected_entries = [entry for entry in entries if self.entry_matches(entry)]
+        return selected_entries
 
-    def update_info_frame(self, entry):
+    def update_info_frame(self, entry = None):
+        if entry is None:
+            entry = self.current_entry
+            if entry is None:
+                return
         self.entry_name_entry.delete(0, tk.END)
         self.entry_name_entry.insert(0, entry.name)
         self.entry_text.delete("0.0", tk.END)
@@ -257,7 +278,7 @@ class MainWindow(tk.Tk, object):
                 assert duplicate_entry.password == new_password
                 current_entry.deleted = True
         self.update_list()
-        self.update_info_frame(self.current_entry)
+        self.update_info_frame()
 
     def hide_password(self):
         self.entry_password_button.pack(fill = tk.X)
@@ -310,9 +331,10 @@ class MainWindow(tk.Tk, object):
     @property
     def current_entry(self):
         index = self.current_index
-        if not self.password_entries:
+        entries = self.password_entries
+        if index not in range(len(entries)):
             return None
-        return self.password_entries[index]
+        return entries[index]
 
     def import_passwords(self, event = None):
         file_name = filedialog.askopenfilename(filetypes = [("all files", "*")])
@@ -326,7 +348,7 @@ class MainWindow(tk.Tk, object):
             notify_file(log_file)
         self.update_list()
         if self.current_entry:
-            self.update_info_frame(self.current_entry)
+            self.update_info_frame()
         
 
     def fill_menu(self):
@@ -371,7 +393,7 @@ class MainWindow(tk.Tk, object):
     def on_select(self, index):
         self.selected_count += 1
         if self.current_entry:
-            self.update_info_frame(self.current_entry)
+            self.update_info_frame()
 
     def on_double(self, index):
         if self.current_entry:
