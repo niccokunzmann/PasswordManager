@@ -217,6 +217,7 @@ class MainWindow(tk.Tk, object):
 
     def minimize(self, event = None):
         self.iconify()
+        self.reset_last_pressed()
 
     def new_password(self, event = None):
         with self.updating_database:
