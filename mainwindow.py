@@ -103,7 +103,6 @@ class MainWindow(tk.Tk, object):
         self.select(self.current_index + 1)
 
     def update_choose_list_entry(self):
-        print(self.choose_list_entry)
         if self.last_pressed and self.choose_list_entry is None:
             self.choose_list_entry = tk.Entry(self.password_list_frame, textvariable = self.last_pressed_variable)
             self.choose_list_entry.pack(side = tk.BOTTOM, fill = tk.X, before = self.password_list.frame)
@@ -185,7 +184,7 @@ class MainWindow(tk.Tk, object):
         if entries:
             self.select(max(enumerate(entries),
                             key=lambda i_entry: sum(any(part.startswith(beginning) for beginning in beginnings)
-                                                for part in i_entry[1].name.split()))[0])
+                                                for part in i_entry[1].name.lower().split()))[0])
 
     def reset_last_pressed(self, event=None):
         self.last_pressed_after_identifier = None
@@ -193,7 +192,7 @@ class MainWindow(tk.Tk, object):
         
     def entry_matches(self, entry):
         matches = self.last_pressed.split()
-        name = entry.name
+        name = entry.name.lower()
         return all(match in name for match in matches)
     
     @property
@@ -201,7 +200,7 @@ class MainWindow(tk.Tk, object):
         return self.last_pressed_variable.get()
     @last_pressed.setter
     def last_pressed(self, value):
-        self.last_pressed_variable.set(value)
+        self.last_pressed_variable.set(value.lower())
         self.last_pressed_changed()
         
     def last_pressed_changed(self, event=None):
@@ -209,9 +208,6 @@ class MainWindow(tk.Tk, object):
         self.update_choose_list_entry()
 
     @property
-    def entry_names(self):
-        return [entry.as_list_entry.lower() for entry in self.password_entries]
-
     def switched_entries(self, selects):
         return selects != self.selected_count
 
