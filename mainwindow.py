@@ -19,7 +19,7 @@ import idlelib.macosxSupport as macosxSupport
 from database import Database
 from dialog import notify_about_copy, notify_file, ask_new_password, notify
 
-LAST_PRESSED_TIME_INTERVAL = 0.5
+REMOVE_SUBSET_AFTER_MILLISECONDS = 300000
     
 class MainWindow(tk.Tk, object):
 
@@ -45,6 +45,7 @@ class MainWindow(tk.Tk, object):
         
         self.last_pressed_variable = tk.StringVar(master = self)
         self.choose_list_entry = None
+        self.subset_removal_after_id = None
         
         self.password_list.listbox.bind('<Any-KeyPress>', self.select_by_letter)
         self.password_list.listbox.bind('<Return>', self.copy_current_password_to_clipboard)
@@ -164,8 +165,6 @@ class MainWindow(tk.Tk, object):
                         "you did not click. Maybe the application "\
                         "is open twice?"
             notify(text, 0)
-
-    last_pressed_time_interval = LAST_PRESSED_TIME_INTERVAL
     
     def select_by_letter(self, event = None):
         letter = event.char
@@ -185,9 +184,12 @@ class MainWindow(tk.Tk, object):
             self.select(max(enumerate(entries),
                             key=lambda i_entry: sum(any(part.startswith(beginning) for beginning in beginnings)
                                                 for part in i_entry[1].name.lower().split()))[0])
+        if self.subset_removal_after_id is not None:
+            self.after_cancel(self.subset_removal_after_id)
+        self.subset_removal_after_id = self.after(REMOVE_SUBSET_AFTER_MILLISECONDS, self.reset_last_pressed)
 
     def reset_last_pressed(self, event=None):
-        self.last_pressed_after_identifier = None
+        self.subset_removal_after_id = None
         self.last_pressed = ""
         
     def entry_matches(self, entry):
@@ -406,6 +408,6 @@ def test_encrypt_and_decrypt_password():
     assert pe != p
 
 if __name__ == '__main__':
-    test_encrypt_and_decrypt_password()
-##    root = MainWindow()
-##    root.mainloop()
+##    test_encrypt_and_decrypt_password()
+    root = MainWindow()
+    root.mainloop()
